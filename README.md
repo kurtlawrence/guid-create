@@ -1,2 +1,4 @@
 # guid-create
-Rust helper for randomly creating GUIDs
+
+Rust helper for randomly creating GUIDs.
+
