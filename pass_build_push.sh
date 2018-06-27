@@ -23,6 +23,7 @@ upload_files() {
 			else
 				echo "Publish succeeded..."
 				git push
+				echo "Push to origin succeeded..."
 			fi
 		fi
 	else
