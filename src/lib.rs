@@ -175,6 +175,7 @@ mod tests {
 		}
 	}
 
+	#[cfg(windows)]
 	#[test]
 	fn win_guid() {
 		for _ in 0..10000 {
