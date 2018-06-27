@@ -100,18 +100,73 @@ impl GUID {
 		GUID { data: d }
 	}
 
+	/// The first four bytes.
+	///
+	/// ``` rust
+	/// extern crate guid_create;
+	/// let guid = guid_create::GUID::build_from_components(
+	/// 	500,
+	/// 	600,
+	/// 	700,
+	/// 	&[ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]
+	/// 	);
+	///
+	/// assert_eq!(guid.data1(), 500);
+	/// ```
 	pub fn data1(&self) -> u32 {
 		BigEndian::read_u32(&self.data[0..4])
 	}
 
+	/// Bytes 5 and 6.
+	///
+	/// ``` rust
+	/// extern crate guid_create;
+	/// let guid = guid_create::GUID::build_from_components(
+	/// 	500,
+	/// 	600,
+	/// 	700,
+	/// 	&[ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]
+	/// 	);
+	///
+	/// assert_eq!(guid.data2(), 600);
+	/// ```
 	pub fn data2(&self) -> u16 {
 		BigEndian::read_u16(&self.data[4..6])
 	}
 
+	/// Bytes 7 and 8.
+	///
+	/// ``` rust
+	/// extern crate guid_create;
+	/// let guid = guid_create::GUID::build_from_components(
+	/// 	500,
+	/// 	600,
+	/// 	700,
+	/// 	&[ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]
+	/// 	);
+	///
+	/// assert_eq!(guid.data3(), 700);
+	/// ```
 	pub fn data3(&self) -> u16 {
 		BigEndian::read_u16(&self.data[6..8])
 	}
 
+	/// The last eight bytes.
+	///
+	/// ``` rust
+	/// extern crate guid_create;
+	/// let guid = guid_create::GUID::build_from_components(
+	/// 	500,
+	/// 	600,
+	/// 	700,
+	/// 	&[ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]
+	/// 	);
+	///
+	///	assert_eq!(
+	///		guid.data4(),
+	///		[0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61]
+	///	);
+	/// ```
 	pub fn data4(&self) -> [u8; 8] {
 		let mut arr = [0u8; 8];
 		for i in 0..8 {
@@ -120,6 +175,24 @@ impl GUID {
 		arr
 	}
 
+	/// Convert the `GUID` to a `winapi` [GUID](https://docs.rs/winapi/0.3.4/x86_64-pc-windows-msvc/winapi/shared/guiddef/struct.GUID.html)
+	/// > Only present on windows targets
+	///
+	/// ``` rust
+	/// extern crate guid_create;
+	/// let guid = guid_create::GUID::build_from_components(
+	/// 	0x87935CDE,
+	/// 	0x7094,
+	/// 	0x4C2B,
+	/// 	&[ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]
+	/// 	);
+	///
+	/// let win = guid.as_winapi_guid();
+	/// assert_eq!(win.Data1, 0x87935CDE);
+	/// assert_eq!(win.Data2, 0x7094);
+	/// assert_eq!(win.Data3, 0x4C2B);
+	/// assert_eq!(win.Data4, [ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]);
+	/// ```
 	#[cfg(windows)]
 	pub fn as_winapi_guid(&self) -> WinGuid {
 		WinGuid {
@@ -130,6 +203,25 @@ impl GUID {
 		}
 	}
 
+	/// Convert a `winapi` [GUID](https://docs.rs/winapi/0.3.4/x86_64-pc-windows-msvc/winapi/shared/guiddef/struct.GUID.html) to a `GUID`
+	/// > Only present on windows targets
+	///
+	/// ``` rust
+	/// extern crate guid_create;
+	/// extern crate winapi;
+	/// let win = winapi::shared::guiddef::GUID {
+	/// 	Data1: 0x87935CDE,
+	/// 	Data2: 0x7094,
+	/// 	Data3: 0x4C2B,
+	/// 	Data4: [ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]
+	/// 	};
+	///
+	/// let guid = guid_create::GUID::from_winapi_guid(win);
+	/// assert_eq!(guid.data1(), 0x87935CDE);
+	/// assert_eq!(guid.data2(), 0x7094);
+	/// assert_eq!(guid.data3(), 0x4C2B);
+	/// assert_eq!(guid.data4(), [ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]);
+	/// ```
 	#[cfg(windows)]
 	pub fn from_winapi_guid(guid: WinGuid) -> Self {
 		GUID::build_from_components(guid.Data1, guid.Data2, guid.Data3, &guid.Data4)
@@ -181,6 +273,10 @@ mod tests {
 		for _ in 0..10000 {
 			let guid = GUID::rand();
 			let win = guid.as_winapi_guid();
+			assert_eq!(guid.data1(), win.Data1);
+			assert_eq!(guid.data2(), win.Data2);
+			assert_eq!(guid.data3(), win.Data3);
+			assert_eq!(guid.data4(), win.Data4);
 			let convert_back = GUID::from_winapi_guid(win);
 			assert_eq!(guid, convert_back);
 		}
