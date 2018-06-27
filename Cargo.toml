@@ -1,6 +1,6 @@
 [package]
 name = "guid-create"
-version = "0.0.1"
+version = "0.1.0"
 authors = ["kurt <kurtlawrence92@gmail.com>"]
 description = "Rust helper for creating GUIDs"
 repository = "https://github.com/kurtlawrence/guid-create"
@@ -12,6 +12,8 @@ license = "MIT"
 rand = "0.5"
 guid = "0.1"
 byteorder = "1.2"
+guid-parser = "0.1.0"
+chomp = "0.3"
 
 [target.'cfg(windows)'.dependencies]
 winapi = "0.3"

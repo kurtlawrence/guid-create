@@ -1,20 +1,67 @@
+//! # guid-create
+//!
+//! Rust helper for randomly creating GUIDs.
+//!
+//! ``` rust
+//! extern crate guid_create;
+//! use guid_create::GUID;
+//!
+//! // Create GUIDs
+//! let guid = GUID::rand();
+//! let guid = GUID::parse("87935CDE-7094-4C2B-A0F4-DD7D512DD261").unwrap();
+//! let guid = GUID::build_from_components(0x87935CDE, 0x7094, 0x4C2B, &[0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61], );
+//! let guid = GUID::build_from_slice(&[ 0x87, 0x93, 0x5C, 0xDE, 0x70, 0x94, 0x4C, 0x2B, 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61,]);
+//!
+//! // View GUIDs
+//! guid.to_string();  // 87935CDE-7094-4C2B-A0F4-DD7D512DD261
+//!
+//! // Check GUIDs
+//! guid.data1();
+//! guid.data2();
+//! guid.data3();
+//! guid.data4();
+//! ```
+
 extern crate byteorder;
+extern crate chomp;
+extern crate guid_parser;
 extern crate rand;
 #[cfg(windows)]
 extern crate winapi;
 
 use byteorder::{BigEndian, ByteOrder};
-use std::fmt;
+use chomp::prelude::*;
+use std::{error, fmt};
 #[cfg(windows)]
 use winapi::shared::guiddef::GUID as WinGuid;
 
+/// Parsing error type.
+#[derive(Debug)]
+pub struct ParseError;
+
+impl error::Error for ParseError {
+	fn description(&self) -> &str {
+		"Malformed GUID, expecting XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+	}
+}
+
+impl fmt::Display for ParseError {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		write!(
+			f,
+			"Malformed GUID, expecting XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+		)
+	}
+}
+
+/// A GUID backed by 16 byte array.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct GUID {
 	data: [u8; 16],
 }
 
 impl GUID {
-	/// Construct a GUID from components.
+	/// Construct a `GUID` from components.
 	///
 	/// ``` rust
 	/// extern crate guid_create;
@@ -65,7 +112,7 @@ impl GUID {
 		GUID { data: d }
 	}
 
-	/// Construct a GUID from 16 bytes.
+	/// Construct a `GUID` from 16 bytes.
 	///
 	/// ``` rust
 	/// extern crate guid_create;
@@ -89,6 +136,56 @@ impl GUID {
 			d[i] = data[i];
 		}
 		GUID { data: d }
+	}
+
+	/// Construct a `GUID` from a string.
+	/// Leverages [`guid-parser`](https://docs.rs/guid-parser/0.1.0/guid_parser/index.html) for the parsing.
+	///
+	/// ``` rust
+	/// extern crate guid_create;
+	/// let guid = guid_create::GUID::parse("87935CDE-7094-4C2B-A0F4-DD7D512DD261").unwrap();
+	///
+	/// assert_eq!(guid.data1(), 0x87935CDE);
+	/// assert_eq!(guid.data2(), 0x7094);
+	/// assert_eq!(guid.data3(), 0x4C2B);
+	/// assert_eq!(guid.data4(), [ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]);
+	/// assert_eq!(guid.to_string(), "87935CDE-7094-4C2B-A0F4-DD7D512DD261");
+	/// ```
+	pub fn parse(guid: &str) -> Result<Self, ParseError> {
+		let r = parse_only(guid_parser::chunks, guid.as_bytes());
+		match r {
+			Ok(chunks) => {
+				let mut d4 = [0u8; 8];
+				{
+					// chunk 4
+					let mut buf = [0; 2];
+					BigEndian::write_u16(&mut buf, chunks.chunk4);
+					for i in 0..2 {
+						d4[i] = buf[i];
+					}
+				}
+				{
+					// hi data
+					let mut buf = [0; 2];
+					BigEndian::write_u16(&mut buf, chunks.chunk5.hi);
+					for i in 0..2 {
+						d4[i + 2] = buf[i];
+					}
+				}
+				{
+					// lo data
+					let mut buf = [0; 4];
+					BigEndian::write_u32(&mut buf, chunks.chunk5.lo);
+					for i in 0..4 {
+						d4[i + 4] = buf[i];
+					}
+				}
+				let guid =
+					GUID::build_from_components(chunks.chunk1, chunks.chunk2, chunks.chunk3, &d4);
+				Ok(guid)
+			}
+			Err(_) => Err(ParseError),
+		}
 	}
 
 	pub fn rand() -> GUID {
@@ -318,5 +415,15 @@ mod tests {
 			[0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61]
 		);
 		assert_eq!(guid.to_string(), "87935CDE-7094-4C2B-A0F4-DD7D512DD261");
+	}
+
+	#[test]
+	fn parse_strings() {
+		for _ in 0..10000 {
+			let guid = GUID::rand();
+			let s = guid.to_string();
+			let guid2 = GUID::parse(&s).unwrap();
+			assert_eq!(guid, guid2);
+		}
 	}
 }
