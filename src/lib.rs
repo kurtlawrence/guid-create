@@ -188,6 +188,7 @@ impl GUID {
 		}
 	}
 
+	/// Generates a new GUID with 16 random bytes.
 	pub fn rand() -> GUID {
 		let mut d = [0u8; 16];
 		for i in 0..16 {
