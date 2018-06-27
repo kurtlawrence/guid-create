@@ -12,6 +12,23 @@ pub struct GUID {
 }
 
 impl GUID {
+	/// Construct a GUID from components.
+	///
+	/// ``` rust
+	/// extern crate guid_create;
+	/// let guid = guid_create::GUID::build_from_components(
+	/// 	0x87935CDE,
+	/// 	0x7094,
+	/// 	0x4C2B,
+	/// 	&[ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]
+	/// 	);
+	///
+	/// assert_eq!(guid.data1(), 0x87935CDE);
+	/// assert_eq!(guid.data2(), 0x7094);
+	/// assert_eq!(guid.data3(), 0x4C2B);
+	/// assert_eq!(guid.data4(), [ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]);
+	/// assert_eq!(guid.to_string(), "87935CDE-7094-4C2B-A0F4-DD7D512DD261");
+	/// ```
 	pub fn build_from_components(d1: u32, d2: u16, d3: u16, d4: &[u8; 8]) -> Self {
 		let mut d = [0u8; 16];
 		{
