@@ -1,9 +1,11 @@
 extern crate byteorder;
 extern crate rand;
+#[cfg(windows)]
 extern crate winapi;
 
-use byteorder::{ByteOrder, NativeEndian};
+use byteorder::{BigEndian, ByteOrder};
 use std::fmt;
+#[cfg(windows)]
 use winapi::shared::guiddef::GUID as WinGuid;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -34,7 +36,7 @@ impl GUID {
 		{
 			// first data
 			let mut buf = [0; 4];
-			NativeEndian::write_u32(&mut buf, d1);
+			BigEndian::write_u32(&mut buf, d1);
 			for i in 0..4 {
 				d[i] = buf[i];
 			}
@@ -42,7 +44,7 @@ impl GUID {
 		{
 			// second data
 			let mut buf = [0; 2];
-			NativeEndian::write_u16(&mut buf, d2);
+			BigEndian::write_u16(&mut buf, d2);
 			for i in 0..2 {
 				d[i + 4] = buf[i];
 			}
@@ -50,7 +52,7 @@ impl GUID {
 		{
 			// third data
 			let mut buf = [0; 2];
-			NativeEndian::write_u16(&mut buf, d3);
+			BigEndian::write_u16(&mut buf, d3);
 			for i in 0..2 {
 				d[i + 6] = buf[i];
 			}
@@ -63,6 +65,24 @@ impl GUID {
 		GUID { data: d }
 	}
 
+	/// Construct a GUID from 16 bytes.
+	///
+	/// ``` rust
+	/// extern crate guid_create;
+	/// let guid = guid_create::GUID::build_from_slice(&[
+	///		0x87, 0x93, 0x5C, 0xDE, 0x70, 0x94, 0x4C, 0x2B, 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D,
+	///		0xD2, 0x61,
+	///	]);
+
+	///	assert_eq!(guid.data1(), 0x87935CDE);
+	///	assert_eq!(guid.data2(), 0x7094);
+	///	assert_eq!(guid.data3(), 0x4C2B);
+	///	assert_eq!(
+	///		guid.data4(),
+	///		[0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61]
+	///	);
+	///	assert_eq!(guid.to_string(), "87935CDE-7094-4C2B-A0F4-DD7D512DD261");
+	/// ```
 	pub fn build_from_slice(data: &[u8; 16]) -> Self {
 		let mut d = [0u8; 16];
 		for i in 0..16 {
@@ -81,15 +101,15 @@ impl GUID {
 	}
 
 	pub fn data1(&self) -> u32 {
-		NativeEndian::read_u32(&self.data[0..4])
+		BigEndian::read_u32(&self.data[0..4])
 	}
 
 	pub fn data2(&self) -> u16 {
-		NativeEndian::read_u16(&self.data[4..6])
+		BigEndian::read_u16(&self.data[4..6])
 	}
 
 	pub fn data3(&self) -> u16 {
-		NativeEndian::read_u16(&self.data[6..8])
+		BigEndian::read_u16(&self.data[6..8])
 	}
 
 	pub fn data4(&self) -> [u8; 8] {
@@ -100,6 +120,7 @@ impl GUID {
 		arr
 	}
 
+	#[cfg(windows)]
 	pub fn as_winapi_guid(&self) -> WinGuid {
 		WinGuid {
 			Data1: self.data1(),
@@ -109,6 +130,7 @@ impl GUID {
 		}
 	}
 
+	#[cfg(windows)]
 	pub fn from_winapi_guid(guid: WinGuid) -> Self {
 		GUID::build_from_components(guid.Data1, guid.Data2, guid.Data3, &guid.Data4)
 	}
@@ -163,4 +185,41 @@ mod tests {
 		}
 	}
 
+	#[test]
+	fn create_from_components() {
+		let guid = GUID::build_from_components(
+			0x87935CDE,
+			0x7094,
+			0x4C2B,
+			&[0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61],
+		);
+
+		assert_eq!(guid.data1(), 0x87935CDE);
+		assert_eq!(guid.data2(), 0x7094);
+		assert_eq!(guid.data3(), 0x4C2B);
+		assert_eq!(
+			guid.data4(),
+			[0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61]
+		);
+		assert_eq!(guid.to_string(), "87935CDE-7094-4C2B-A0F4-DD7D512DD261");
+	}
+
+	#[test]
+	fn create_from_array() {
+		let guid = GUID::build_from_slice(&[
+			0x87, 0x93, 0x5C, 0xDE, 0x70, 0x94, 0x4C, 0x2B, 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D,
+			0xD2, 0x61,
+		]);
+
+		println!("{}", guid);
+
+		assert_eq!(guid.data1(), 0x87935CDE);
+		assert_eq!(guid.data2(), 0x7094);
+		assert_eq!(guid.data3(), 0x4C2B);
+		assert_eq!(
+			guid.data4(),
+			[0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61]
+		);
+		assert_eq!(guid.to_string(), "87935CDE-7094-4C2B-A0F4-DD7D512DD261");
+	}
 }

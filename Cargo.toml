@@ -10,6 +10,8 @@ license = "MIT"
 
 [dependencies]
 rand = "0.5"
-winapi = "0.3"
 guid = "0.1"
 byteorder = "1.2"
+
+[target.'cfg(windows)'.dependencies]
+winapi = "0.3"
