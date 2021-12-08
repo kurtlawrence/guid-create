@@ -9,11 +9,12 @@ keywords = ["guid"]
 license = "MIT"
 
 [dependencies]
-rand = "0.5"
-guid = "0.1"
-byteorder = "1.2"
+rand = "0.8.4"
+guid = "0.1.0"
+byteorder = "1.4.3"
 guid-parser = "0.1.0"
-chomp = "0.3"
+chomp = "0.3.1"
+serde = {version="1.0.130", optional = true}
 
 [target.'cfg(windows)'.dependencies]
-winapi = "0.3"
+winapi = "0.3.9"
