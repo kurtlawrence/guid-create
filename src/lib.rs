@@ -326,6 +326,32 @@ impl GUID {
 	}
 }
 
+#[cfg(feature = "serde")]
+extern crate serde;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize, Deserializer, Serializer, de};
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for GUID {
+    fn deserialize<D>(deserializer: D) -> Result<GUID, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let string_guid = String::deserialize(deserializer)?;
+        let guid = GUID::parse(&string_guid).map_err(|_| {
+            de::Error::custom(format!("cannot convert {} to guid", string_guid))
+        })?;
+        Ok(guid)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl Serialize for GUID {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&*self.to_string())
+    }
+}
+
 impl fmt::Display for GUID {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		let mut s1 = String::new();
