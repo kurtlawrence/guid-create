@@ -21,3 +21,6 @@ guid.data2();
 guid.data3();
 guid.data4();
 ```
+
+Features:
+ - `serde`: Enables structs to be serialized and deserialized with serde

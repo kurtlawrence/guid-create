@@ -7,6 +7,9 @@ repository = "https://github.com/kurtlawrence/guid-create"
 readme = "README.md"
 keywords = ["guid"]
 license = "MIT"
+edition = "2021"
+rust-version = "1.56.0"
+categories = ["data-structures"]
 
 [dependencies]
 rand = "0.8.4"
@@ -14,7 +17,7 @@ guid = "0.1.0"
 byteorder = "1.4.3"
 guid-parser = "0.1.0"
 chomp = "0.3.1"
-serde = {version="1.0.130", optional = true}
+serde = { version = "1.0.136", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 winapi = "0.3.9"
