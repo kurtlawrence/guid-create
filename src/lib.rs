@@ -291,7 +291,7 @@ impl<'de> Deserialize<'de> for GUID {
     {
         let string_guid = String::deserialize(deserializer)?;
         let guid = GUID::parse(&string_guid)
-            .map_err(|_| de::Error::custom(format!("cannot convert {} to guid", string_guid)))?;
+            .map_err(|_| de::Error::custom(format!("cannot convert {string_guid} to guid")))?;
         Ok(guid)
     }
 }
