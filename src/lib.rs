@@ -42,7 +42,7 @@ impl fmt::Display for ParseError {
 }
 
 /// A GUID backed by 16 byte array.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Hash)]
 pub struct GUID {
     data: [u8; 16],
 }
