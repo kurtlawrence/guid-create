@@ -21,6 +21,11 @@
 //! guid.data3();
 //! guid.data4();
 //! ```
+#[cfg(test)]
+extern crate quickcheck;
+#[cfg(test)]
+#[macro_use(quickcheck)]
+extern crate quickcheck_macros;
 
 use chomp::prelude::*;
 use std::{convert::TryInto, fmt};
@@ -51,7 +56,6 @@ impl GUID {
     /// Construct a `GUID` from components.
     ///
     /// ``` rust
-    /// extern crate guid_create;
     /// let guid = guid_create::GUID::build_from_components(
     ///     0x87935CDE,
     ///     0x7094,
@@ -82,7 +86,6 @@ impl GUID {
     /// Construct a `GUID` from 16 bytes.
     ///
     /// ``` rust
-    /// extern crate guid_create;
     /// let guid = guid_create::GUID::build_from_slice(&[
     ///     0x87, 0x93, 0x5C, 0xDE, 0x70, 0x94, 0x4C, 0x2B, 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D,
     ///     0xD2, 0x61,
@@ -105,7 +108,6 @@ impl GUID {
     /// Leverages [`guid-parser`](https://docs.rs/guid-parser/0.1.0/guid_parser/index.html) for the parsing.
     ///
     /// ``` rust
-    /// extern crate guid_create;
     /// let guid = guid_create::GUID::parse("87935CDE-7094-4C2B-A0F4-DD7D512DD261").unwrap();
     ///
     /// assert_eq!(guid.data1(), 0x87935CDE);
@@ -115,23 +117,66 @@ impl GUID {
     /// assert_eq!(guid.to_string(), "87935CDE-7094-4C2B-A0F4-DD7D512DD261");
     /// ```
     pub fn parse(guid: &str) -> Result<Self, ParseError> {
-        let r = parse_only(guid_parser::chunks, guid.as_bytes());
-        match r {
-            Ok(chunks) => {
-                let mut data: [u8; 8] = Default::default();
-
-                data[..2].copy_from_slice(&chunks.chunk4.to_be_bytes()[..]);
-                data[2..4].copy_from_slice(&chunks.chunk5.hi.to_be_bytes());
-                data[4..8].copy_from_slice(&chunks.chunk5.lo.to_be_bytes());
-
-                Ok(GUID::build_from_components(
-                    chunks.chunk1,
-                    chunks.chunk2,
-                    chunks.chunk3,
-                    &data,
-                ))
+        fn n(ch: u8) -> Result<u8, ParseError> {
+            match ch {
+                b'0'..=b'9' => Ok(ch - 48),
+                b'A'..=b'F' => Ok(ch - 55),
+                b'a'..=b'f' => Ok(ch - 87),
+                _ => Err(ParseError),
             }
-            Err(_) => Err(ParseError),
+        }
+        fn hexbyte(s: &[u8]) -> Result<(u8, &[u8]), ParseError> {
+            match s {
+                [a, b, tail @ ..] => n(*a)
+                    .and_then(|a| n(*b).map(|b| a * 16 + b))
+                    .map(|x| (x, tail)),
+                _ => Err(ParseError),
+            }
+        }
+        fn strip_dash(s: &[u8]) -> Result<&[u8], ParseError> {
+            match s {
+                [b'-', tail @ ..] => Ok(tail),
+                _ => Err(ParseError),
+            }
+        }
+
+        let mut data = [0u8; 16];
+
+        let mut s = guid.as_bytes();
+
+        fn fill<'a>(buf: &mut [u8], mut s: &'a [u8]) -> Result<&'a [u8], ParseError> {
+            for l in buf {
+                let (d, s_) = hexbyte(s)?;
+                *l = d;
+                s = s_;
+            }
+            Ok(s)
+        }
+
+        // first four bytes
+        s = fill(&mut data[..4], s)?;
+        s = strip_dash(s)?;
+
+        // second two bytes
+        s = fill(&mut data[4..6], s)?;
+        s = strip_dash(s)?;
+
+        // third two bytes
+        s = fill(&mut data[6..8], s)?;
+        s = strip_dash(s)?;
+
+        // fourth two bytes
+        s = fill(&mut data[8..10], s)?;
+        s = strip_dash(s)?;
+
+        // trailing bytes
+        s = fill(&mut data[10..], s)?;
+
+        // should be empty!
+        if s.is_empty() {
+            Ok(Self { data })
+        } else {
+            Err(ParseError)
         }
     }
 
@@ -324,6 +369,15 @@ impl fmt::Display for GUID {
 }
 
 #[cfg(test)]
+impl quickcheck::Arbitrary for GUID {
+    fn arbitrary(g: &mut quickcheck::Gen) -> Self {
+        let mut data = [0u8; 16];
+        data.fill_with(|| u8::arbitrary(g));
+        Self { data }
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -401,5 +455,17 @@ mod tests {
             let guid2 = GUID::parse(&s).unwrap();
             assert_eq!(guid, guid2);
         }
+    }
+
+    #[quickcheck]
+    fn no_panic_parse(s: String) {
+        GUID::parse(&s).ok();
+    }
+
+    #[quickcheck]
+    fn parse_success(guid: GUID) -> bool {
+        let s = guid.to_string();
+        let g2 = GUID::parse(&s).unwrap();
+        g2 == guid
     }
 }
