@@ -27,7 +27,6 @@ extern crate quickcheck;
 #[macro_use(quickcheck)]
 extern crate quickcheck_macros;
 
-use chomp::prelude::*;
 use std::{convert::TryInto, fmt};
 
 #[cfg(windows)]
@@ -105,7 +104,6 @@ impl GUID {
     }
 
     /// Construct a `GUID` from a string.
-    /// Leverages [`guid-parser`](https://docs.rs/guid-parser/0.1.0/guid_parser/index.html) for the parsing.
     ///
     /// ``` rust
     /// let guid = guid_create::GUID::parse("87935CDE-7094-4C2B-A0F4-DD7D512DD261").unwrap();
@@ -356,14 +354,9 @@ impl fmt::Display for GUID {
             self.data1(),
             self.data2(),
             self.data3(),
-            u16::from_be_bytes([self.data4()[0], self.data4()[1]]),
-            u32::from_be_bytes([
-                self.data4()[2],
-                self.data4()[3],
-                self.data4()[4],
-                self.data4()[5],
-            ]),
-            u16::from_be_bytes([self.data4()[6], self.data4()[7]]),
+            u16::from_be_bytes(self.data[8..10].try_into().unwrap()),
+            u32::from_be_bytes(self.data[10..14].try_into().unwrap()),
+            u16::from_be_bytes(self.data[14..16].try_into().unwrap()),
         )
     }
 }
