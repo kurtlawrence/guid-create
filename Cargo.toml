@@ -1,6 +1,6 @@
 [package]
 name = "guid-create"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["kurt <kurtlawrence92@gmail.com>"]
 description = "Rust helper for creating GUIDs"
 repository = "https://github.com/kurtlawrence/guid-create"
@@ -11,13 +11,15 @@ edition = "2021"
 rust-version="1.60.0"
 
 [dependencies]
-rand = "0.8.4"
-guid-parser = "0.1.0"
-chomp = "0.3.1"
-serde = { version = "1.0.130", optional = true }
+rand = "0.8"
+serde = { version = "1", optional = true }
 
 [features]
 serde = ["dep:serde"]
 
 [target.'cfg(windows)'.dependencies]
 winapi = "0.3.9"
+
+[dev-dependencies]
+quickcheck = "1"
+quickcheck_macros = "1"
