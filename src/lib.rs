@@ -45,6 +45,8 @@ impl fmt::Display for ParseError {
     }
 }
 
+impl std::error::Error for ParseError {}
+
 /// A GUID backed by 16 byte array.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Hash)]
 pub struct GUID {
