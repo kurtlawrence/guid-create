@@ -49,6 +49,8 @@ impl std::error::Error for ParseError {}
 
 /// A GUID backed by 16 byte array.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Hash)]
+#[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
+#[repr(transparent)]
 pub struct GUID {
     data: [u8; 16],
 }
