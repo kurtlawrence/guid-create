@@ -72,18 +72,18 @@ impl GUID {
     /// assert_eq!(guid.data4(), [ 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D, 0xD2, 0x61 ]);
     /// assert_eq!(guid.to_string(), "87935CDE-7094-4C2B-A0F4-DD7D512DD261");
     /// ```
-    pub fn build_from_components(d1: u32, d2: u16, d3: u16, d4: &[u8; 8]) -> Self {
-        let mut guid = GUID::default();
-        // first data
-        guid.data[..4].copy_from_slice(&d1.to_be_bytes());
-        // second data
-        guid.data[4..6].copy_from_slice(&d2.to_be_bytes());
-        // third data
-        guid.data[6..8].copy_from_slice(&d3.to_be_bytes());
-        // fourth data
-        guid.data[8..16].copy_from_slice(&d4[..8]);
+    pub const fn build_from_components(d1: u32, d2: u16, d3: u16, d4: &[u8; 8]) -> Self {
+        let d1 = d1.to_be_bytes();
+        let d2 = d2.to_be_bytes();
+        let d3 = d3.to_be_bytes();
+        let data = [
+            d1[0], d1[1], d1[2], d1[3],
+            d2[0], d2[1],
+            d3[0], d3[1],
+            d4[0], d4[1], d4[2], d4[3], d4[4], d4[5], d4[6], d4[7],
+        ];
 
-        guid
+        GUID{ data }
     }
 
     /// Construct a `GUID` from 16 bytes.
@@ -103,7 +103,7 @@ impl GUID {
     /// );
     /// assert_eq!(guid.to_string(), "87935CDE-7094-4C2B-A0F4-DD7D512DD261");
     /// ```
-    pub fn build_from_slice(data: &[u8; 16]) -> Self {
+    pub const fn build_from_slice(data: &[u8; 16]) -> Self {
         GUID { data: *data }
     }
 
