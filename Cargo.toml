@@ -1,6 +1,6 @@
 [package]
 name = "guid-create"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["kurt <kurtlawrence92@gmail.com>"]
 description = "Rust helper for creating GUIDs"
 repository = "https://github.com/kurtlawrence/guid-create"
