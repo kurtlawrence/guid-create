@@ -16,7 +16,8 @@ serde = { version = "1", optional = true }
 bytemuck = { version = "1", optional = true }
 
 [features]
-default = ["rand"]
+default = ["std", "rand"]
+std = []
 rand = ["dep:rand"]
 serde = ["dep:serde"]
 bytemuck = ["dep:bytemuck"]
