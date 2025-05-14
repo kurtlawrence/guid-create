@@ -183,6 +183,7 @@ impl GUID {
     }
 
     /// Generates a new GUID with 16 random bytes.
+    #[cfg(feature = "rand")]
     pub fn rand() -> GUID {
         GUID {
             data: rand::random(),
