@@ -76,6 +76,7 @@ impl GUID {
         let d1 = d1.to_be_bytes();
         let d2 = d2.to_be_bytes();
         let d3 = d3.to_be_bytes();
+        #[rustfmt::skip]
         let data = [
             d1[0], d1[1], d1[2], d1[3],
             d2[0], d2[1],
@@ -83,7 +84,7 @@ impl GUID {
             d4[0], d4[1], d4[2], d4[3], d4[4], d4[5], d4[6], d4[7],
         ];
 
-        GUID{ data }
+        GUID { data }
     }
 
     /// Construct a `GUID` from 16 bytes.
