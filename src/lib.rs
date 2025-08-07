@@ -1,3 +1,4 @@
+#![cfg_attr(not(feature = "std"), no_std)]
 //! # guid-create
 //!
 //! Rust helper for randomly creating GUIDs.
@@ -27,7 +28,7 @@ extern crate quickcheck;
 #[macro_use(quickcheck)]
 extern crate quickcheck_macros;
 
-use std::{convert::TryInto, fmt};
+use core::{convert::TryInto, fmt};
 
 #[cfg(windows)]
 use winapi::shared::guiddef::GUID as WinGuid;
@@ -44,8 +45,7 @@ impl fmt::Display for ParseError {
         )
     }
 }
-
-impl std::error::Error for ParseError {}
+impl core::error::Error for ParseError {}
 
 /// A GUID backed by 16 byte array.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Hash)]
@@ -183,6 +183,7 @@ impl GUID {
     }
 
     /// Generates a new GUID with 16 random bytes.
+    #[cfg(feature = "rand")]
     pub fn rand() -> GUID {
         GUID {
             data: rand::random(),
