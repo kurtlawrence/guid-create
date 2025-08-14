@@ -7,7 +7,7 @@ jobs:
     name: Build Linux
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Build
       run: cargo build
@@ -19,7 +19,7 @@ jobs:
     name: Build Windows
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Build
       run: cargo build
@@ -31,7 +31,7 @@ jobs:
     name: Lints
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Run cargo fmt
       run: cargo fmt --all -- --check
@@ -43,7 +43,7 @@ jobs:
     name: Run tests
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Run cargo test
       run: cargo test
