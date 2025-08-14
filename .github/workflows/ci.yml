@@ -1,0 +1,49 @@
+name: CI
+on:
+  push:
+
+jobs:
+  build:
+    name: Build Linux
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build
+      run: cargo build
+
+    - name: Build without features
+      run: cargo build --no-default-features
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-2022
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build
+      run: cargo build
+
+    - name: Build without features
+      run: cargo build --no-default-features
+
+  lints:
+    name: Lints
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run cargo fmt
+      run: cargo fmt --all -- --check
+
+    - name: Run cargo clippy
+      run: cargo clippy -- -D warnings
+
+  test:
+    name: Run tests
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run cargo test
+      run: cargo test
