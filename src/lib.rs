@@ -400,9 +400,9 @@ impl fmt::Display for GUID {
             self.data1(),
             self.data2(),
             self.data3(),
-            u16::from_be_bytes(self.data[8..10].try_into().unwrap()),
-            u32::from_be_bytes(self.data[10..14].try_into().unwrap()),
-            u16::from_be_bytes(self.data[14..16].try_into().unwrap()),
+            u16::from_be_bytes([self.data[8], self.data[9]]),
+            u32::from_be_bytes([self.data[10], self.data[11], self.data[12], self.data[13]]),
+            u16::from_be_bytes([self.data[14], self.data[15]]),
         )
     }
 }
