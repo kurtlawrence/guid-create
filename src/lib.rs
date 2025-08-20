@@ -55,6 +55,46 @@ pub struct GUID {
     data: [u8; 16],
 }
 
+impl From<CGuid> for GUID {
+    fn from(item: CGuid) -> Self {
+        GUID::build_from_components(item.a, item.b, item.c, &item.d)
+    }
+}
+
+impl From<GUID> for CGuid {
+    fn from(item: GUID) -> Self {
+        CGuid {
+            a: item.data1(),
+            b: item.data2(),
+            c: item.data3(),
+            d: item.data4(),
+        }
+    }
+}
+
+impl fmt::Display for CGuid {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let guid: GUID = (*self).into();
+        guid.fmt(f)
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Hash)]
+#[repr(C)]
+pub struct CGuid {
+    /// The low field of the timestamp.
+    a: u32,
+    /// The middle field of the timestamp.
+    b: u16,
+    /// The high field of the timestamp multiplexed with the version number.
+    c: u16,
+    /// Contains, in this order:
+    /// - The high field of the clock sequence multiplexed with the variant.
+    /// - The low field of the clock sequence.
+    /// - The spatially unique node identifier.
+    d: [u8; 8],
+}
+
 impl GUID {
     /// Construct a `GUID` from components.
     ///
@@ -360,9 +400,9 @@ impl fmt::Display for GUID {
             self.data1(),
             self.data2(),
             self.data3(),
-            u16::from_be_bytes(self.data[8..10].try_into().unwrap()),
-            u32::from_be_bytes(self.data[10..14].try_into().unwrap()),
-            u16::from_be_bytes(self.data[14..16].try_into().unwrap()),
+            u16::from_be_bytes([self.data[8], self.data[9]]),
+            u32::from_be_bytes([self.data[10], self.data[11], self.data[12], self.data[13]]),
+            u16::from_be_bytes([self.data[14], self.data[15]]),
         )
     }
 }
