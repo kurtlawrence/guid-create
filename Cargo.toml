@@ -13,7 +13,7 @@ rust-version="1.60.0"
 [dependencies]
 rand = { version = "0.9", optional = true }
 serde = { version = "1", optional = true }
-bytemuck = { version = "1", optional = true }
+bytemuck = { version = "1", optional = true, features = [ "derive" ]}
 
 [features]
 default = ["std", "rand"]
