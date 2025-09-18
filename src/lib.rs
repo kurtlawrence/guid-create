@@ -3,7 +3,7 @@
 //!
 //! Rust helper for randomly creating GUIDs.
 //!
-//! ``` rust
+//! ```rust,ignore
 //! extern crate guid_create;
 //! use guid_create::GUID;
 //!
@@ -424,6 +424,7 @@ mod tests {
     fn travis_test() {}
 
     #[test]
+    #[cfg(feature = "std")]
     fn string_lengths() {
         for _ in 0..10000 {
             let guid = GUID::rand();
@@ -449,6 +450,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn create_from_components() {
         let guid = GUID::build_from_components(
             0x87935CDE,
@@ -468,6 +470,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn create_from_array() {
         let guid = GUID::build_from_slice(&[
             0x87, 0x93, 0x5C, 0xDE, 0x70, 0x94, 0x4C, 0x2B, 0xA0, 0xF4, 0xDD, 0x7D, 0x51, 0x2D,
@@ -487,6 +490,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn parse_strings() {
         for _ in 0..10000 {
             let guid = GUID::rand();
@@ -497,11 +501,13 @@ mod tests {
     }
 
     #[quickcheck]
+    #[cfg(feature = "std")]
     fn no_panic_parse(s: String) {
         GUID::parse(&s).ok();
     }
 
     #[quickcheck]
+    #[cfg(feature = "std")]
     fn parse_success(guid: GUID) -> bool {
         let s = guid.to_string();
         let g2 = GUID::parse(&s).unwrap();
